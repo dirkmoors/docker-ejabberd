@@ -57,6 +57,18 @@ COPY ./run $EJABBERD_ROOT/bin/run
 # Add run scripts
 ADD ./scripts $EJABBERD_ROOT/bin/scripts
 
+# Go to root
+USER root
+
+# Compile easy cluster. The output files have to be in the /lib/ejabberd/ebin/ directory!
+WORKDIR /lib/ejabberd/ebin/
+RUN erlc -W0 $EJABBERD_ROOT/bin/scripts/erl/easy_cluster.erl
+RUN if [ ! -f /lib/ejabberd/ebin/easy_cluster.beam ]; then echo "Failed to compile erlang plugin!"; exit 1; fi
+WORKDIR /
+
+# Back to normal user
+USER $EJABBERD_USERerl
+
 VOLUME ["$EJABBERD_ROOT/database", "$EJABBERD_ROOT/ssl"]
 EXPOSE 5222 5269 5280 4560
 
