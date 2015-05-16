@@ -42,9 +42,7 @@ listen:
   -
     port: 5222
     module: ejabberd_c2s
-    {%- if env['EJABBERD_STARTTLS'] == "true" %}
-    starttls_required: true
-    {% endif %}
+    {%- if env['EJABBERD_STARTTLS'] == "true" %}starttls_required: true{% endif %}
     protocol_options:
       - "no_sslv3"
       - "no_tlsv1"
@@ -57,6 +55,9 @@ listen:
   -
     port: 4560
     module: ejabberd_xmlrpc
+    access_commands:
+      configure:
+        all: []
   -
     port: 5280
     module: ejabberd_http
@@ -122,39 +123,58 @@ acl:
 
 ###   ============
 ###   ACCESS RULES
-
 access:
+  ## Maximum number of simultaneous sessions allowed for a single user:
   max_user_sessions:
     all: 10
+  ## Maximum number of offline messages that users can have:
   max_user_offline_messages:
     admin: 5000
     all: 100
+  ## This rule allows access only for local users:
   local:
     local: allow
+  ## Only non-blocked users can use c2s connections:
   c2s:
     blocked: deny
     all: allow
+  ## For C2S connections, all users except admins use the "normal" shaper
   c2s_shaper:
     admin: none
     all: normal
+  ## All S2S connections use the "fast" shaper
   s2s_shaper:
     all: fast
+  ## Only admins can send announcement messages:
   announce:
     admin: allow
+  ## Only admins can use the configuration interface:
   configure:
     admin: allow
+  ## Admins of this server are also admins of the MUC service:
   muc_admin:
     admin: allow
+  ## Only accounts of the local ejabberd server can create rooms:
   muc_create:
-    local: allow
+    admin: allow
+  ## All users are allowed to use the MUC service:
   muc:
     all: allow
+  ## Only accounts on the local ejabberd server can create Pubsub nodes:
   pubsub_createnode:
     local: allow
+  ## In-band registration allows registration of any possible username.
+  ## To disable in-band registration, replace 'allow' with 'deny'.
   register:
-    all: allow
+    all: deny
+    admin: allow
+  ## Only allow to register from localhost
   trusted_network:
     loopback: allow
+  ## Do not establish S2S connections with bad servers
+  ## s2s_access:
+  ##   bad_servers: deny
+  ##   all: allow
 
 
 language: "en"
@@ -164,7 +184,7 @@ language: "en"
 
 modules:
   mod_adhoc: {}
-  ## mod_admin_extra: {}
+  mod_admin_extra: {}
   mod_announce: # recommends mod_adhoc
     access: announce
   mod_blocking: {} # requires mod_privacy
@@ -188,7 +208,10 @@ modules:
     access_create: muc_create
     access_persistent: muc_create
     access_admin: muc_admin
-  ## mod_muc_admin: {}
+    history_size: 50
+    default_room_options:
+      persistent: true
+  mod_muc_admin: {}
   ## mod_muc_log: {}
   ## mod_multicast: {}
   mod_offline:
@@ -212,13 +235,43 @@ modules:
       - "hometree"
       - "pep" # pep requires mod_caps
   mod_register:
+    ##
+    ## Protect In-Band account registrations with CAPTCHA.
+    ##
     ## captcha_protected: true
+
+    ##
+    ## Set the minimum informational entropy for passwords.
+    ##
     ## password_strength: 32
+
+    ##
+    ## After successful registration, the user receives
+    ## a message with this subject and body.
+    ##
     welcome_message:
       subject: "Welcome!"
       body: |-
         Hi.
         Welcome to this XMPP server.
+
+    ##
+    ## When a user registers, send a notification to
+    ## these XMPP accounts.
+    ##
+    ## registration_watchers:
+    ##   - "admin1@example.org"
+
+    ##
+    ## Only clients in the server machine can register accounts
+    ##
+    ip_access: trusted_network
+
+    ##
+    ## Local c2s or remote s2s users cannot register accounts
+    ##
+    ## access_from: deny
+
     access: register
   mod_roster: {}
   mod_shared_roster: {}
