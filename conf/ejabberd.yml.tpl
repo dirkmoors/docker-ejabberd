@@ -156,7 +156,7 @@ access:
     admin: allow
   ## Only accounts of the local ejabberd server can create rooms:
   muc_create:
-    admin: allow
+    {%- if env['EJABBERD_MUC_CREATE_ADMIN_ONLY'] == "true" %}admin: allow{% else %}local: allow{% endif %}
   ## All users are allowed to use the MUC service:
   muc:
     all: allow
@@ -166,8 +166,8 @@ access:
   ## In-band registration allows registration of any possible username.
   ## To disable in-band registration, replace 'allow' with 'deny'.
   register:
-    all: deny
-    admin: allow
+    {%- if env['EJABBERD_REGISTER_ADMIN_ONLY'] == "true" %}all: deny
+    admin: allow{% else %}all: allow{% endif %}
   ## Only allow to register from localhost
   trusted_network:
     loopback: allow
@@ -184,7 +184,7 @@ language: "en"
 
 modules:
   mod_adhoc: {}
-  mod_admin_extra: {}
+  {%- if env['EJABBERD_MOD_ADMIN_EXTRA'] == "true" %}mod_admin_extra: {}{% endif %}
   mod_announce: # recommends mod_adhoc
     access: announce
   mod_blocking: {} # requires mod_privacy
@@ -211,7 +211,7 @@ modules:
     history_size: 50
     default_room_options:
       persistent: true
-  mod_muc_admin: {}
+  {%- if env['EJABBERD_MOD_MUC_ADMIN'] == "true" %}mod_muc_admin: {}{% endif %}
   ## mod_muc_log: {}
   ## mod_multicast: {}
   mod_offline:
@@ -265,7 +265,7 @@ modules:
     ##
     ## Only clients in the server machine can register accounts
     ##
-    ip_access: trusted_network
+    {%- if env['EJABBERD_REGISTER_TRUSTED_NETWORK_ONLY'] == "true" %}ip_access: trusted_network{% endif %}
 
     ##
     ## Local c2s or remote s2s users cannot register accounts
