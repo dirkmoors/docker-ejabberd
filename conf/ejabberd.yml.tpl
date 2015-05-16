@@ -42,7 +42,9 @@ listen:
   -
     port: 5222
     module: ejabberd_c2s
-    {%- if env['EJABBERD_STARTTLS'] == "true" %}starttls_required: true{% endif %}
+    {%- if env['EJABBERD_STARTTLS'] == "true" %}
+    starttls_required: true
+    {% endif %}
     protocol_options:
       - "no_sslv3"
       - "no_tlsv1"
@@ -156,7 +158,11 @@ access:
     admin: allow
   ## Only accounts of the local ejabberd server can create rooms:
   muc_create:
-    {%- if env['EJABBERD_MUC_CREATE_ADMIN_ONLY'] == "true" %}admin: allow{% else %}local: allow{% endif %}
+    {%- if env['EJABBERD_MUC_CREATE_ADMIN_ONLY'] == "true" %}
+    admin: allow
+    {% else %}
+    local: allow
+    {% endif %}
   ## All users are allowed to use the MUC service:
   muc:
     all: allow
@@ -166,8 +172,12 @@ access:
   ## In-band registration allows registration of any possible username.
   ## To disable in-band registration, replace 'allow' with 'deny'.
   register:
-    {%- if env['EJABBERD_REGISTER_ADMIN_ONLY'] == "true" %}all: deny
-    admin: allow{% else %}all: allow{% endif %}
+    {%- if env['EJABBERD_REGISTER_ADMIN_ONLY'] == "true" %}
+    all: deny
+    admin: allow
+    {% else %}
+    all: allow
+    {% endif %}
   ## Only allow to register from localhost
   trusted_network:
     loopback: allow
@@ -184,7 +194,9 @@ language: "en"
 
 modules:
   mod_adhoc: {}
-  {%- if env['EJABBERD_MOD_ADMIN_EXTRA'] == "true" %}mod_admin_extra: {}{% endif %}
+  {%- if env['EJABBERD_MOD_ADMIN_EXTRA'] == "true" %}
+  mod_admin_extra: {}
+  {% endif %}
   mod_announce: # recommends mod_adhoc
     access: announce
   mod_blocking: {} # requires mod_privacy
@@ -211,7 +223,9 @@ modules:
     history_size: 50
     default_room_options:
       persistent: true
-  {%- if env['EJABBERD_MOD_MUC_ADMIN'] == "true" %}mod_muc_admin: {}{% endif %}
+  {%- if env['EJABBERD_MOD_MUC_ADMIN'] == "true" %}
+  mod_muc_admin: {}
+  {% endif %}
   ## mod_muc_log: {}
   ## mod_multicast: {}
   mod_offline:
