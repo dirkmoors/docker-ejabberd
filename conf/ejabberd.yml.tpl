@@ -279,7 +279,9 @@ modules:
     ##
     ## Only clients in the server machine can register accounts
     ##
-    {%- if env['EJABBERD_REGISTER_TRUSTED_NETWORK_ONLY'] == "true" %}ip_access: trusted_network{% endif %}
+    {%- if env['EJABBERD_REGISTER_TRUSTED_NETWORK_ONLY'] == "true" %}
+    ip_access: trusted_network
+    {% endif %}
 
     ##
     ## Local c2s or remote s2s users cannot register accounts
