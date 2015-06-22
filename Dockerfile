@@ -1,4 +1,4 @@
-FROM debian:7
+FROM debian:jessie
 MAINTAINER Rafael Römhild <rafael@roemhild.de>
 
 ENV EJABBERD_BRANCH master
@@ -22,7 +22,6 @@ RUN groupadd -r $EJABBERD_USER \
     && useradd -r -m \
        -g $EJABBERD_USER \
        -d $EJABBERD_HOME \
-       -s /usr/sbin/nologin \
        $EJABBERD_USER
 
 # Install packages and perform cleanup
@@ -49,7 +48,7 @@ RUN set -x \
         erlang-eunit erlang-ic erlang-inviso erlang-odbc erlang-os-mon \
         erlang-parsetools erlang-percept erlang-typer \
 	' \
-	&& echo 'deb http://packages.erlang-solutions.com/debian wheezy contrib' >> \
+	&& echo 'deb http://packages.erlang-solutions.com/debian jessie contrib' >> \
         /etc/apt/sources.list \
     && apt-key adv \
         --keyserver keys.gnupg.net \
