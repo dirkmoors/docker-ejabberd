@@ -2,6 +2,7 @@ FROM debian:jessie
 MAINTAINER Rafael Römhild <rafael@roemhild.de>
 
 ENV EJABBERD_BRANCH master
+ENV ERLANG_VERSION 17.5
 ENV EJABBERD_USER ejabberd
 ENV EJABBERD_WEB_ADMIN_SSL true
 ENV EJABBERD_STARTTLS true
@@ -11,6 +12,16 @@ ENV HOME $EJABBERD_HOME
 ENV PATH $EJABBERD_HOME/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ENV DEBIAN_FRONTEND noninteractive
 ENV XMPP_DOMAIN localhost
+
+# Set kerl configuration options
+ENV KERL_CONFIGURE_OPTIONS "--enable-smp-support \
+                            --enable-m64-build \
+                            --enable-kernel-poll \
+                            --without-javac \
+                            --disable-native-libs \
+                            --disable-hipe \
+                            --disable-sctp \
+                            --enable-threads"
 
 # Set default locale for the environment
 ENV LC_ALL C.UTF-8
@@ -24,9 +35,13 @@ RUN groupadd -r $EJABBERD_USER \
        -d $EJABBERD_HOME \
        $EJABBERD_USER
 
+# Add erlang install helper (source: http://docs.basho.com/riak/1.3.0/tutorials/installation/Installing-Erlang/#Install-using-kerl)
+ADD ./vendor/kerl /tmp/kerl
+
 # Install packages and perform cleanup
 RUN set -x \
 	&& buildDeps=' \
+	    curl \
         git-core \
         build-essential \
         automake \
@@ -35,18 +50,18 @@ RUN set -x \
         libexpat-dev \
         libyaml-dev \
         libsqlite3-dev \
-        erlang-src erlang-dev \
+        libncurses5-dev \
+        unixodbc-dev \
 	' \
 	&& requiredAptPackages=' \
+	    openssl \
+        fop \
+        xsltproc \
 	    locales \
         python2.7 \
         python-jinja2 \
         ca-certificates \
         libyaml-0-2 \
-        erlang-base erlang-snmp erlang-ssl erlang-ssh erlang-webtool \
-        erlang-tools erlang-xmerl erlang-corba erlang-diameter erlang-eldap \
-        erlang-eunit erlang-ic erlang-inviso erlang-odbc erlang-os-mon \
-        erlang-parsetools erlang-percept erlang-typer \
 	' \
 	&& echo 'deb http://packages.erlang-solutions.com/debian jessie contrib' >> \
         /etc/apt/sources.list \
@@ -61,6 +76,12 @@ RUN set -x \
     && echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen \
     && locale-gen \
     && cd /tmp \
+    && ./kerl build $ERLANG_VERSION erlversion \
+    && ./kerl install erlversion /opt/erlang \
+    && . /opt/erlang/activate \
+    && ./kerl delete build erlversion \
+    && ./kerl cleanup all \
+    && erl -version \
     && git clone https://github.com/processone/ejabberd.git \
         --branch $EJABBERD_BRANCH --single-branch --depth=1 \
     && cd ejabberd \
@@ -81,7 +102,8 @@ RUN set -x \
     && ln -sf $EJABBERD_HOME/conf /etc/ejabberd \
     && chown -R $EJABBERD_USER: $EJABBERD_HOME \
     && rm -rf /var/lib/apt/lists/* \
-	&& apt-get purge -y --auto-remove $buildDeps
+	&& apt-get purge -y --auto-remove $buildDeps \
+	&& apt-get clean
 
 # Wrapper for setting config on disk from environment
 # allows setting things like XMPP domain at runtime
