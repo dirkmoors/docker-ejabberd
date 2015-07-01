@@ -35,7 +35,7 @@ RUN set -x \
         libexpat-dev \
         libyaml-dev \
         libsqlite3-dev \
-        erlang-src erlang-dev \
+        erlang-dev \
 	' \
 	&& requiredAptPackages=' \
 	    locales \
@@ -45,16 +45,14 @@ RUN set -x \
         libyaml-0-2 \
         erlang-base erlang-snmp erlang-ssl erlang-ssh erlang-webtool \
         erlang-tools erlang-xmerl erlang-corba erlang-diameter erlang-eldap \
-        erlang-eunit erlang-ic erlang-inviso erlang-odbc erlang-os-mon \
+        erlang-eunit erlang-ic erlang-odbc erlang-os-mon \
         erlang-parsetools erlang-percept erlang-typer \
 	' \
-	&& echo 'deb http://packages.erlang-solutions.com/debian jessie contrib' >> \
-        /etc/apt/sources.list \
     && apt-key adv \
         --keyserver keys.gnupg.net \
         --recv-keys 434975BD900CCBE4F7EE1B1ED208507CA14F4FCA \
 	&& apt-get update \
-	&& apt-get install -y $buildDeps $requiredAptPackages --no-install-recommends \
+	&& apt-get install -y $buildDeps $requiredAptPackages --fix-missing --no-install-recommends \
 	&& dpkg-reconfigure locales && \
         locale-gen C.UTF-8 \
     && /usr/sbin/update-locale LANG=C.UTF-8 \
