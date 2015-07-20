@@ -1,7 +1,7 @@
 FROM debian:jessie
 MAINTAINER Rafael Römhild <rafael@roemhild.de>
 
-ENV EJABBERD_BRANCH 15.04
+ENV EJABBERD_BRANCH 15.06
 ENV EJABBERD_USER ejabberd
 ENV EJABBERD_WEB_ADMIN_SSL true
 ENV EJABBERD_STARTTLS true
@@ -45,11 +45,9 @@ RUN set -x \
         libyaml-0-2 \
         erlang-base erlang-snmp erlang-ssl erlang-ssh erlang-webtool \
         erlang-tools erlang-xmerl erlang-corba erlang-diameter erlang-eldap \
-        erlang-eunit erlang-ic erlang-inviso erlang-odbc erlang-os-mon \
+        erlang-eunit erlang-ic erlang-odbc erlang-os-mon \
         erlang-parsetools erlang-percept erlang-typer \
 	' \
-	&& echo 'deb http://packages.erlang-solutions.com/debian jessie contrib' >> \
-        /etc/apt/sources.list \
     && apt-key adv \
         --keyserver keys.gnupg.net \
         --recv-keys 434975BD900CCBE4F7EE1B1ED208507CA14F4FCA \
