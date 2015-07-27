@@ -2,7 +2,7 @@ FROM debian:jessie
 MAINTAINER Rafael Römhild <rafael@roemhild.de>
 
 ENV EJABBERD_BRANCH 15.06
-ENV EJABBERD_USER ejabberd
+ENV EJABBERD_USER root
 ENV EJABBERD_WEB_ADMIN_SSL true
 ENV EJABBERD_STARTTLS true
 ENV EJABBERD_S2S_SSL true
@@ -16,13 +16,6 @@ ENV XMPP_DOMAIN localhost
 ENV LC_ALL C.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
-
-# Add ejabberd user and group
-RUN groupadd -r $EJABBERD_USER \
-    && useradd -r -m \
-       -g $EJABBERD_USER \
-       -d $EJABBERD_HOME \
-       $EJABBERD_USER
 
 # Install packages and perform cleanup
 RUN set -x \
@@ -64,12 +57,13 @@ RUN set -x \
     && cd ejabberd \
     && chmod +x ./autogen.sh \
     && ./autogen.sh \
-    && ./configure --enable-user=$EJABBERD_USER \
+    && ./configure \
         --enable-all \
         --disable-tools \
         --disable-pam \
     && make \
     && make install \
+    && mkdir -p $EJABBERD_HOME \
     && mkdir $EJABBERD_HOME/ssl \
     && mkdir $EJABBERD_HOME/conf \
     && mkdir $EJABBERD_HOME/database \
@@ -77,7 +71,6 @@ RUN set -x \
     && rm -rf /tmp/ejabberd \
     && rm -rf /etc/ejabberd \
     && ln -sf $EJABBERD_HOME/conf /etc/ejabberd \
-    && chown -R $EJABBERD_USER: $EJABBERD_HOME \
     && rm -rf /var/lib/apt/lists/* \
 	&& apt-get purge -y --auto-remove $buildDeps
 
@@ -90,9 +83,6 @@ ADD ./scripts $EJABBERD_HOME/scripts
 
 # Add config templates
 ADD ./conf /opt/ejabberd/conf
-
-# Continue as user
-USER $EJABBERD_USER
 
 # Set workdir to ejabberd root
 WORKDIR $EJABBERD_HOME
